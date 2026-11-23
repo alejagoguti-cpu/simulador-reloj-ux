@@ -1,6 +1,6 @@
 /* ============ PANTALLA DIVIDIDA + TABLERO (al darle play) ============
    Al correr una de las 12 simulaciones la pantalla se parte en dos:
-   · IZQUIERDA  axonometría: la MISMA escena 3D (foto 3D, edificios, huertas, mercados, plan parcial, carros) con cámara paralela
+   · IZQUIERDA  la vista 3D de siempre (misma cámara en perspectiva; sin axonometría desde 2026-11-23, a pedido de la autora). Antes: cámara paralela
                 (ortográfica) que sigue el giro y el zoom de la cámara principal; encima, volúmenes de color por zona de 500 m
                 cuya altura es el indicador espacial del par en esa semana.
    · DERECHA    planta: la misma escena vista desde arriba (norte arriba, escala gráfica) con el mismo indicador como mancha de color
@@ -158,7 +158,7 @@ export function iniciarDividida({ T3, ESC }) {
   const anillo = (id, r = 26, w = 5) => { const C = 2 * Math.PI * r, s = 2 * (r + w); return `<div class="dv-anillo" data-a="${id}"><svg width="${s}" height="${s}"><circle cx="${s / 2}" cy="${s / 2}" r="${r}" fill="none" stroke="rgba(255,255,255,.12)" stroke-width="${w}"/><circle cx="${s / 2}" cy="${s / 2}" r="${r}" fill="none" stroke="url(#dvGrad)" stroke-width="${w}" stroke-linecap="round" stroke-dasharray="0 ${C}" data-c="${C}"/></svg><span>—</span></div>`; };
   raiz.innerHTML = `<svg width="0" height="0" style="position:absolute"><defs><linearGradient id="dvGrad" x1="0" x2="1"><stop offset="0" stop-color="#ffb347"/><stop offset="1" stop-color="#ffd86b"/></linearGradient><linearGradient id="dvGradA" x1="0" x2="1"><stop offset="0" stop-color="#ff8a80"/><stop offset="1" stop-color="#ffb1a8"/></linearGradient><linearGradient id="dvGradV" x1="0" x2="1"><stop offset="0" stop-color="#6fd894"/><stop offset="1" stop-color="#a8f0c0"/></linearGradient><linearGradient id="dvGradN" x1="0" x2="1"><stop offset="0" stop-color="#9aa1a8"/><stop offset="1" stop-color="#d5d9dd"/></linearGradient></defs></svg>
   <div id="dv-raya"></div>
-  <div class="dv-vista" id="dv-v1"><b>AXONOMETRÍA</b><small>VISTA PARALELA · ALTURA = INDICADOR DEL PAR</small></div>
+  <div class="dv-vista" id="dv-v1"><b>VISTA 3D</b><small>LA SIMULACIÓN EN EL TERRITORIO</small></div>
   <div class="dv-vista" id="dv-v2"><b>PLANTA</b><small>VISTA CENITAL · NORTE ARRIBA</small></div>
   <div id="dv-norte">${ICO.norte}<div>N</div></div>
   <div id="dv-escala"><span>500 m</span><i></i></div>
@@ -233,7 +233,6 @@ export function iniciarDividida({ T3, ESC }) {
   }
 
   /* ---------------- cámaras paralelas ---------------- */
-  const axo = new THREE.OrthographicCamera(-1, 1, 1, -1, -30000, 30000);
   const planta = new THREE.OrthographicCamera(-1, 1, 1, -1, -30000, 30000);
   const CAPA_PL = 10, CAPA_AX = 11; // capa temática: la mancha plana solo en planta, los volúmenes solo en la axonometría
   const v = new THREE.Vector3(), FONDO = new THREE.Color('#06122a');
@@ -253,11 +252,6 @@ export function iniciarDividida({ T3, ESC }) {
     if (!D.on || !T3.orbit) return false;
     const R = T3.renderer, tg = T3.orbit.target, dist = cam.position.distanceTo(tg), fov = (cam.fov || 50) * Math.PI / 180;
     const medio = Math.max(600, dist * Math.tan(fov / 2) * D.zoom), K = caja(); // las vistas paralelas abarcan más que la perspectiva: Kennedy casi entera
-    // axonometría: el mismo rumbo que la cámara principal, elevación fija de 35° (vista paralela, sin fuga)
-    v.copy(cam.position).sub(tg); const az = Math.atan2(v.x, v.z), el = 35 * Math.PI / 180;
-    axo.position.set(tg.x + Math.sin(az) * Math.cos(el) * dist, tg.y + Math.sin(el) * dist, tg.z + Math.cos(az) * Math.cos(el) * dist);
-    axo.up.set(0, 1, 0); axo.lookAt(tg); axo.layers.mask = cam.layers.mask; axo.layers.enable(CAPA_AX); axo.layers.disable(CAPA_PL);
-    encuadrar(axo, K.a, medio * 0.92);
     // planta: cenital, norte arriba (en el mundo z va al sur)
     planta.position.set(tg.x, tg.y + dist, tg.z); planta.up.set(0, 0, -1); planta.lookAt(tg.x, tg.y, tg.z);
     planta.layers.mask = cam.layers.mask; planta.layers.enable(CAPA_PL); planta.layers.disable(CAPA_AX);
@@ -268,8 +262,14 @@ export function iniciarDividida({ T3, ESC }) {
     const dib = (c, r) => { const y = H - r.y - r.h;
       if (D.byn) return dibByN(c, r, y);
       R.setViewport(r.x, y, r.w, r.h); R.setScissor(r.x, y, r.w, r.h); R.render(T3.scene, c); };
+    // IZQUIERDA: la vista 3D de siempre (la misma cámara en perspectiva, con cielo y bruma), corrida para que el punto mirado quede en
+    // el centro de la parte que no tapan los paneles
+    const asp0 = cam.aspect, dx = Math.max(0, (K.a.vx0 + K.a.vx1) / 2 - K.a.w / 2), Wv = K.a.w + 2 * dx;
+    cam.aspect = Wv / K.a.h; cam.setViewOffset(Wv, K.a.h, 0, 0, K.a.w, K.a.h);
+    try { dib(cam, K.a); } finally { cam.clearViewOffset(); cam.aspect = asp0; cam.updateProjectionMatrix(); }
+    // DERECHA: planta, sin bruma y con fondo oscuro
     const sc = T3.scene, nb = sc.fog, bg = sc.background; sc.fog = null; sc.background = FONDO;
-    dib(axo, K.a); dib(planta, K.b);
+    dib(planta, K.b);
     sc.fog = nb; sc.background = bg;
     R.setScissorTest(false); R.setViewport(0, 0, innerWidth, H); R.autoClear = auto;
     return true;
