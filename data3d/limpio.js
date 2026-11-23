@@ -9,7 +9,7 @@
    Empresa Metro de Bogotá). Desde que opera bajan los carros que se dibujan durante un año hasta METRO_MENOS_CARROS.
    [SUP] METRO_MENOS_CARROS = 0,10: no hay cifra oficial de cuánto tráfico quita la Línea 1. */
 import { RELOJ } from './reloj.js?v=5';
-import { iniciarSimUI } from './sim_ui.js?v=42';
+import { iniciarSimUI } from './sim_ui.js?v=43';
 
 export const METRO_SEM_OP = 114;
 export const SEMANAS_FIN = 1040;
@@ -167,6 +167,8 @@ export function iniciarLimpio({ T3 }) {
   /* ---------- escoger simulación: prepara el territorio y espera PLAY ---------- */
   const ESC = window.KEN_LIMPIO = { activo: 0, sim: null, factorCarros: () => factorCarros(), SIMS };
   let UI = null; iniciarSimUI({ T3, SIMS_UI: SIMS }).then(u => { UI = window.KEN_SIMUI = u; if (ESC.activo) u.preparar(ESC.activo); }).catch(e => console.warn('interfaz de simulaciones:', e));
+  /* PANTALLA DIVIDIDA (data3d/pantalla_dividida.js): al darle play, axonometría a la izquierda y planta a la derecha, con el tablero */
+  if (!/[?&]dividida=0/.test(location.search)) import('./pantalla_dividida.js?v=2').then(m => m.iniciarDividida({ T3, ESC })).catch(e => console.warn('pantalla dividida:', e));
   function factorCarros() { // multiplica la demanda de tráfico que se dibuja (index.html, updateTraffic)
     if (window.KEN_TRAF_F) return window.KEN_TRAF_F; // más carros (los mismos de la simulación SUMO) cuando el modelo dice que hay más tráfico
     return 1; // el metro está en todas las simulaciones: su efecto lo lleva el modelo semanal
