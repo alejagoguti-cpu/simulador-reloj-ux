@@ -13,6 +13,7 @@ import { RELOJ } from './reloj.js?v=5';
 
 const FIN = 1040, AÑO0 = 2026;
 const FASES = [{ n: 'Corto plazo', a0: 1, a1: 5 }, { n: 'Mediano plazo', a0: 6, a1: 10 }, { n: 'Largo plazo', a0: 11, a1: 20 }];
+const PAR_CORTO = ['', 'Abastecimiento', 'Movilidad', 'Residuos', 'Biodiversidad', 'Población', 'Gobernanza'];
 const PAR_N = ['', 'Abastecimiento', 'Movilidad', 'Residuos', 'Biodiversidad', 'Población y suelo', 'Gobernanza'];
 const pct = (v) => v == null || !isFinite(v) ? '—' : Math.round(v * 100) + '%';
 const num = (v, d = 0) => v == null || !isFinite(v) ? '—' : (+v).toLocaleString('es-CO', { maximumFractionDigits: d, minimumFractionDigits: d });
@@ -133,7 +134,61 @@ export function iniciarDividida({ T3, ESC }) {
   html.dv-on #lp-anos{width:min(560px,calc(100vw - 680px));min-width:420px}
   html.dv-on #lp-anos .tit{display:none}
   @media (max-width:1180px){.dv-col{width:244px}.dv-bar{grid-template-columns:66px 1fr 40px}#dv-top .clima{display:none}#dv-chips button{padding:0 7px;font-size:11.5px}html.dv-on #lp-anos{width:calc(100vw - 580px);min-width:300px}}
-  @media (max-width:900px){.dv-col,#dv-chips,#dv-top .tabs,#dv-ficha,#dv-leyenda{display:none!important}#dv-raya{top:50%;left:0;right:0;bottom:auto;width:auto;height:1px}html.dv-on #lp-anos{width:calc(100vw - 24px);min-width:0}}`;
+  @media (max-width:900px){.dv-col,#dv-chips,#dv-top .tabs,#dv-ficha,#dv-leyenda{display:none!important}#dv-raya{top:50%;left:0;right:0;bottom:auto;width:auto;height:1px}html.dv-on #lp-anos{width:calc(100vw - 24px);min-width:0}}
+  /* ===== rediseño UX ===== */
+  #dv-top{gap:12px;padding:0 8px 0 16px;height:50px}
+  #dv-top .marca{display:flex;flex-direction:column;line-height:1.2;margin-right:auto;min-width:0}
+  #dv-top .marca b{font:600 14px Inter,system-ui,sans-serif;white-space:nowrap}
+  #dv-top .marca small{font:600 9.5px Inter,system-ui,sans-serif;letter-spacing:.16em;text-transform:uppercase;color:var(--dv-tx2);white-space:nowrap}
+  #dv-top .seg{display:flex;gap:2px;padding:3px;border-radius:11px;background:rgba(255,255,255,.06);flex:none}
+  #dv-top .seg button{height:32px;padding:0 11px;border:0;border-radius:8px;background:none;color:var(--dv-tx2);font:600 12.5px Inter,system-ui,sans-serif;cursor:pointer;display:flex;align-items:center;gap:6px;white-space:nowrap;transition:background .15s,color .15s}
+  #dv-top .seg button em{font:500 10.5px 'JetBrains Mono',monospace;font-style:normal;opacity:.55}
+  #dv-top .seg button:hover{color:var(--dv-tx);background:rgba(255,255,255,.08)}
+  #dv-top .seg button:focus-visible,#dv button:focus-visible{outline:2px solid var(--dv-am2);outline-offset:1px}
+  #dv-top .seg button.on{background:rgba(255,170,70,.92);color:#1c1205}
+  #dv-top .seg button.on em{opacity:.75}
+  #dv-top .prop button[data-prop="1"].on{background:rgba(142,230,168,.92);color:#0d1f14}
+  #dv-top .btn{height:38px;padding:0 13px;border-radius:10px;border:1px solid var(--dv-bd);background:rgba(255,255,255,.08);color:var(--dv-tx);font:600 12.5px Inter,system-ui,sans-serif;cursor:pointer;display:flex;align-items:center;gap:7px;flex:none}
+  #dv-top .btn.on{background:rgba(255,170,70,.92);color:#1c1205;border-color:transparent}
+  #dv-prueba{position:absolute;left:50%;top:74px;transform:translateX(-50%);max-width:calc(100vw - 680px);display:flex;align-items:baseline;gap:10px;padding:8px 14px;border-radius:12px;pointer-events:auto;font:400 12px/1.3 Inter,system-ui,sans-serif;color:var(--dv-tx2)}
+  #dv-prueba b{font-weight:600;color:var(--dv-tx);white-space:nowrap}
+  #dv-prueba span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+  #dv-prueba.go{border-color:rgba(255,138,128,.6)}#dv-prueba.go span{color:var(--dv-co)}
+  .dv-col{top:76px;justify-content:flex-start;overflow-y:auto;scrollbar-width:none}
+  .dv-col::-webkit-scrollbar{display:none}
+  .dv-p{flex:none}
+  .dv-crece{flex:1 1 auto!important;min-height:200px}
+  /* recursos básicos: 4 anillos en fila con la etiqueta debajo; basura y ruido en la fila de abajo */
+  #dv-izq .dv-g2{grid-template-columns:repeat(4,1fr);gap:12px 4px}
+  #dv-izq .dv-g2 .dv-ai{flex-direction:column;text-align:center;gap:5px}
+  #dv-izq .dv-g2 .dv-ai .dv-lbl{font-size:10.5px;line-height:1.2;color:var(--dv-tx2)}
+  #dv-izq .dv-g2 .dv-ai:nth-child(n+5){grid-column:span 2;flex-direction:row;text-align:left}
+  /* comparación: anillo chico, etiqueta en dos líneas si hace falta */
+  #dv-der .dv-g2{gap:10px 6px}
+  #dv-der .dv-ai{gap:7px;min-width:0}#dv-der .dv-ai>div:last-child{min-width:0}
+  #dv-der .dv-ai .dv-lbl{font-size:11px;line-height:1.2;color:var(--dv-tx2)}
+  .dv-anillo.vacio span{display:none}
+  .dv-d{display:inline-flex;align-items:center;gap:3px;margin-top:2px;padding:1px 6px;border-radius:6px;font:600 10.5px 'JetBrains Mono',monospace;color:var(--dv-tx2);background:rgba(255,255,255,.06)}
+  .dv-d.bien{color:var(--dv-ve);background:rgba(142,230,168,.12)}.dv-d.mal{color:var(--dv-co);background:rgba(255,138,128,.12)}
+  #dv-leyenda{width:182px}
+  #dv-pills{flex-direction:column}
+  html.dv-on #su-avisos{top:160px}
+  @media (prefers-reduced-motion:no-preference){
+    html.dv-on #dv-top,html.dv-on #dv-prueba{animation:dvBaja .45s cubic-bezier(.2,.8,.2,1) both}
+    html.dv-on #dv-izq{animation:dvIzq .5s .05s cubic-bezier(.2,.8,.2,1) both}
+    html.dv-on #dv-der{animation:dvDer .5s .05s cubic-bezier(.2,.8,.2,1) both}
+    html.dv-on #dv-raya,html.dv-on .dv-vista,html.dv-on #dv-leyenda,html.dv-on #dv-pills{animation:dvAparece .6s .15s both}
+  }
+  @keyframes dvBaja{from{opacity:0;transform:translateY(-10px)}}
+  #dv-prueba{animation-name:dvBajaC!important}
+  @keyframes dvBajaC{from{opacity:0;transform:translate(-50%,-10px)}}
+  @keyframes dvIzq{from{opacity:0;transform:translateX(-16px)}}
+  @keyframes dvDer{from{opacity:0;transform:translateX(16px)}}
+  @keyframes dvAparece{from{opacity:0}}
+  @media (max-width:1480px){#dv-top .marca small{display:none}#dv-top .seg button{padding:0 8px}}
+  @media (max-width:1320px){#dv-top .marca{display:none}#dv-top .pares button{font-size:0;gap:0;padding:0 9px}#dv-top .pares button em{font-size:11.5px;opacity:1}#dv-top .vista button{font-size:0;gap:0}}
+  @media (max-width:900px){#dv-prueba{display:none}#dv-top .prop button{padding:0 8px;font-size:11.5px}}
+`;
   document.head.appendChild(css);
 
   /* ---------------- iconos planos (SVG de trazo, color = currentColor) ---------------- */
@@ -150,6 +205,10 @@ export function iniciarDividida({ T3, ESC }) {
     hogar: ic('<path d="M4 11 12 4.5l8 6.5"/><path d="M6 9.5v10h12v-10"/><path d="M10 19.5v-5h4v5"/>'),
     gris: ic('<circle cx="12" cy="12" r="8.5"/><path d="M12 3.5a8.5 8.5 0 0 1 0 17z" fill="currentColor" stroke="none"/>'),
     informe: ic('<path d="M7 3.5h7l4 4v13H7z"/><path d="M14 3.5v4h4M9.5 12h6M9.5 15.5h6"/>'),
+    cubo: ic('<path d="M12 3.5 20 8v8l-8 4.5L4 16V8z"/><path d="M4 8l8 4.5L20 8M12 12.5v8"/>'),
+    dividir: ic('<rect x="3.5" y="5" width="17" height="14" rx="2"/><path d="M12 5v14"/>'),
+    sube: '<svg viewBox="0 0 12 12" width="10" height="10" aria-hidden="true"><path d="M6 2.5 10 8H2z" fill="currentColor"/></svg>',
+    baja: '<svg viewBox="0 0 12 12" width="10" height="10" aria-hidden="true"><path d="M6 9.5 2 4h8z" fill="currentColor"/></svg>',
     norte: '<svg class="ic" viewBox="0 0 24 24" style="width:22px;height:22px" aria-hidden="true"><path d="M12 3.5 17 19l-5-3.5L7 19z" fill="currentColor"/></svg>'
   };
 
@@ -162,70 +221,76 @@ export function iniciarDividida({ T3, ESC }) {
   <div class="dv-vista" id="dv-v2"><b>PLANTA</b><small>VISTA CENITAL · NORTE ARRIBA</small></div>
   <div id="dv-norte">${ICO.norte}<div>N</div></div>
   <div id="dv-escala"><span>500 m</span><i></i></div>
-  <div id="dv-top" class="dv-glass">
-    <div class="clima"><span>${ICO.nube}14°C</span><i>|</i><span>${ICO.reloj}<b data-k="reloj" style="font-weight:500">--:--:--</b></span><i>|</i><span>${ICO.cal}<b data-k="fecha" style="font-weight:500">2026/11/23</b></span></div>
-    <div class="tabs"><button class="tab" data-vista="una"><b>Vista 3D</b><small>SINGLE VIEW</small></button><button class="tab on" data-vista="div"><b>Dividida</b><small>SPLIT VIEW</small></button></div>
-    <div class="tit"><b>Kennedy · gemelo digital</b><small>Simulador territorial · 12 escenarios · 20 años</small></div>
-    <div class="tabs"><button class="tab" data-prop="0"><b>Sin propuesta</b><small>BASELINE</small></button><button class="tab" data-prop="1"><b>Con propuesta</b><small>PROPOSAL</small></button></div>
-    <div class="der"><span>Congestión <b data-k="cong">—</b></span><i>|</i><button data-k="var">${ICO.ajustes}Variables</button></div>
-  </div>
-  <div id="dv-chips" class="dv-glass">${[1, 2, 3, 4, 5, 6].map(p => `<button data-par="${p}"><em>${String(p).padStart(2, '0')}</em>${PAR_N[p]}</button>`).join('')}</div>
+  <header id="dv-top" class="dv-glass">
+    <div class="marca"><b>Kennedy · gemelo digital</b><small>12 escenarios · 20 años</small></div>
+    <nav class="seg pares" aria-label="Par de simulaciones">${[1, 2, 3, 4, 5, 6].map(p => `<button data-par="${p}" title="${PAR_N[p]} (tecla ${p})"><em>${String(p).padStart(2, '0')}</em>${PAR_CORTO[p]}</button>`).join('')}</nav>
+    <div class="seg prop" aria-label="Escenario"><button data-prop="0" title="Sin propuesta (tecla S)">Sin propuesta</button><button data-prop="1" title="Con propuesta (tecla C)">Con propuesta</button></div>
+    <div class="seg vista" aria-label="Vista"><button data-vista="una" title="Solo la vista 3D (tecla D)">${ICO.cubo}3D</button><button data-vista="div" class="on" title="Vista 3D y planta (tecla D)">${ICO.dividir}Dividida</button></div>
+    <button class="btn" data-k="var" title="Variables de la simulación">${ICO.ajustes}Variables</button>
+  </header>
+  <div id="dv-prueba" class="dv-glass"><b data-k="pnom">—</b><span data-k="prueba">Escoge un par y dale play</span></div>
   <div class="dv-col" id="dv-izq">
-    <section class="dv-p dv-glass" style="flex:0 0 172px"><div class="dv-h"><div><b>Abastecimiento local</b><small>LOCAL FOOD SUPPLY</small></div></div>
+    <section class="dv-p dv-glass"><div class="dv-h"><div><b>Abastecimiento local</b><small>LOCAL FOOD SUPPLY</small></div></div>
       <div class="dv-c" style="display:flex;align-items:center;gap:14px">
-        <div style="text-align:center">${anillo('comida', 36, 7)}<div class="dv-lbl" style="margin-top:6px">Comida de<br>huertas y mercados</div></div>
+        <div style="text-align:center">${anillo('comida', 36, 7)}<div class="dv-sub" style="margin-top:6px">comida local</div></div>
         <div style="display:flex;flex-direction:column;gap:12px">
           <div style="display:flex;gap:8px;align-items:center"><span class="dv-ico">${ICO.brote}</span><div><div class="dv-big" data-k="huertas">—<small>huertas</small></div><div class="dv-sub">activas en Kennedy</div></div></div>
-          <div style="display:flex;gap:8px;align-items:center"><span class="dv-ico">${ICO.mercado}</span><div><div class="dv-big" data-k="cora">—</div><div class="dv-sub">Corabastos frente<br>a su tope</div></div></div>
+          <div style="display:flex;gap:8px;align-items:center"><span class="dv-ico">${ICO.mercado}</span><div><div class="dv-big" data-k="cora">—</div><div class="dv-sub">Corabastos vs. su tope</div></div></div>
         </div></div></section>
-    <section class="dv-p dv-glass" style="flex:1 1 300px"><div class="dv-h"><div><b>Red ecológica</b><small>ECOLOGICAL NETWORK · HOY = LÍNEA</small></div></div>
-      <div class="dv-c"><div class="dv-sub" style="margin-bottom:8px">Frente a hoy (año 1). Unidad: conteo del modelo</div><div data-k="barras"></div>
+    <section class="dv-p dv-glass"><div class="dv-h"><div><b>Red ecológica</b><small>ECOLOGICAL NETWORK · HOY = LÍNEA</small></div></div>
+      <div class="dv-c"><div class="dv-sub" style="margin-bottom:10px">Frente a hoy (línea punteada)</div><div data-k="barras"></div>
       <div class="dv-eje"><span>0</span><span>hoy</span><span>×2</span></div></div></section>
-    <section class="dv-p dv-glass" style="flex:0 0 240px"><div class="dv-h"><div><b>Recursos básicos</b><small>BASIC RESOURCE USAGE</small></div></div>
+    <section class="dv-p dv-glass"><div class="dv-h"><div><b>Recursos básicos</b><small>BASIC RESOURCE USAGE</small></div></div>
       <div class="dv-c"><div class="dv-g2">
-        <div class="dv-ai">${anillo('circ')}<div class="dv-lbl">Economía<br>circular</div></div>
-        <div class="dv-ai">${anillo('sinrec')}<div class="dv-lbl">Basura<br>sin recoger</div></div>
-        <div class="dv-ai">${anillo('humf')}<div class="dv-lbl">Humedales<br>que funcionan</div></div>
-        <div class="dv-ai">${anillo('ruid')}<div class="dv-lbl">Calles<br>ruidosas ≥65 dB</div></div>
+        <div class="dv-ai">${anillo('circ', 24, 5)}<div class="dv-lbl">Economía circular</div></div>
+        <div class="dv-ai">${anillo('sinrec', 24, 5)}<div class="dv-lbl">Sin recoger</div></div>
+        <div class="dv-ai">${anillo('humf', 24, 5)}<div class="dv-lbl">Humedales</div></div>
+        <div class="dv-ai">${anillo('ruid', 24, 5)}<div class="dv-lbl">Calles ≥65 dB</div></div>
         <div class="dv-ai"><span class="dv-ico">${ICO.basura}</span><div><div class="dv-big" data-k="basura">—<small>t/día</small></div><div class="dv-sub">basura generada</div></div></div>
         <div class="dv-ai"><span class="dv-ico">${ICO.ruido}</span><div><div class="dv-big" data-k="db">—<small>dB</small></div><div class="dv-sub">ruido promedio</div></div></div>
       </div></div></section>
   </div>
   <div class="dv-col" id="dv-der">
-    <section class="dv-p dv-glass" style="flex:0 0 150px"><div class="dv-h"><div><b>Población y suelo</b><small>POPULATION PLANNING</small></div></div>
+    <section class="dv-p dv-glass"><div class="dv-h"><div><b>Población y suelo</b><small>POPULATION PLANNING</small></div></div>
       <div class="dv-c" style="display:flex;align-items:center;gap:12px">
-        <span class="dv-ico" style="width:38px;height:38px">${ICO.hogar}</span><div><div class="dv-big" data-k="hog">—</div><div class="dv-sub">hogares en riesgo<br>de desplazamiento</div></div>
+        <span class="dv-ico" style="width:38px;height:38px">${ICO.hogar}</span><div><div class="dv-big" data-k="hog">—</div><div class="dv-sub">hogares en riesgo de desplazamiento</div></div>
         <div style="margin-left:auto;text-align:center">${anillo('suelo', 28, 6)}<div class="dv-sub">precio del suelo</div></div></div></section>
-    <section class="dv-p dv-glass" style="flex:1 1 200px"><div class="dv-h"><div><b>Tendencia del par</b><small>CONSTRUCTION SCALE · POR AÑO</small></div></div>
-      <div class="dv-c" style="display:flex;flex-direction:column"><div style="display:flex;justify-content:space-between;align-items:center;gap:6px"><span class="dv-sub" data-k="gtit">—</span><div class="dv-ley"><span><i style="background:#c9cdd2"></i>Sin propuesta</span><span><i style="background:#8ee6a8"></i>Con propuesta</span></div></div>
+    <section class="dv-p dv-glass dv-crece"><div class="dv-h"><div><b>Tendencia del par</b><small>CONSTRUCTION SCALE · POR AÑO</small></div></div>
+      <div class="dv-c" style="display:flex;flex-direction:column"><div class="dv-lbl" data-k="gtit" style="margin-bottom:4px">—</div><div class="dv-ley" style="justify-content:flex-start;margin-bottom:4px"><span><i style="background:#c9cdd2"></i>Sin propuesta</span><span><i style="background:#8ee6a8"></i>Con propuesta</span></div>
       <div class="dv-graf" data-k="graf" style="flex:1;min-height:110px"></div></div></section>
-    <section class="dv-p dv-glass" style="flex:0 0 auto"><div class="dv-h"><div><b>Sin / con propuesta</b><small>LAND PLANNING PROPORTION</small></div></div>
+    <section class="dv-p dv-glass"><div class="dv-h"><div><b data-k="cmpT">Frente a la otra mitad del par</b><small>LAND PLANNING PROPORTION</small></div></div>
       <div class="dv-c"><div class="dv-g2">
-        <div class="dv-ai">${anillo('k1', 18, 4)}<div><div class="dv-lbl">Congestión</div><div class="dv-big" style="font-size:18px" data-k="k1">—</div><div class="dv-sub" data-k="k1b"></div></div></div>
-        <div class="dv-ai">${anillo('k2', 18, 4)}<div><div class="dv-lbl">Comida zona peor</div><div class="dv-big" style="font-size:18px" data-k="k2">—</div><div class="dv-sub" data-k="k2b"></div></div></div>
-        <div class="dv-ai">${anillo('k3', 18, 4)}<div><div class="dv-lbl">Humedales</div><div class="dv-big" style="font-size:18px" data-k="k3">—</div><div class="dv-sub" data-k="k3b"></div></div></div>
-        <div class="dv-ai">${anillo('k4', 18, 4)}<div><div class="dv-lbl">Economía circular</div><div class="dv-big" style="font-size:18px" data-k="k4">—</div><div class="dv-sub" data-k="k4b"></div></div></div>
-        <div class="dv-ai">${anillo('k5', 18, 4)}<div><div class="dv-lbl">Sin recoger</div><div class="dv-big" style="font-size:18px" data-k="k5">—</div><div class="dv-sub" data-k="k5b"></div></div></div>
-        <div class="dv-ai">${anillo('k6', 18, 4)}<div><div class="dv-lbl">Árboles perdidos</div><div class="dv-big" style="font-size:18px" data-k="k6">—</div><div class="dv-sub" data-k="k6b"></div></div></div>
+        <div class="dv-ai">${anillo('k1', 14, 4)}<div><div class="dv-lbl">Congestión</div><div class="dv-big" style="font-size:18px" data-k="k1">—</div><div class="dv-sub" data-k="k1b"></div></div></div>
+        <div class="dv-ai">${anillo('k2', 14, 4)}<div><div class="dv-lbl">Comida zona peor</div><div class="dv-big" style="font-size:18px" data-k="k2">—</div><div class="dv-sub" data-k="k2b"></div></div></div>
+        <div class="dv-ai">${anillo('k3', 14, 4)}<div><div class="dv-lbl">Humedales</div><div class="dv-big" style="font-size:18px" data-k="k3">—</div><div class="dv-sub" data-k="k3b"></div></div></div>
+        <div class="dv-ai">${anillo('k4', 14, 4)}<div><div class="dv-lbl">Economía circular</div><div class="dv-big" style="font-size:18px" data-k="k4">—</div><div class="dv-sub" data-k="k4b"></div></div></div>
+        <div class="dv-ai">${anillo('k5', 14, 4)}<div><div class="dv-lbl">Sin recoger</div><div class="dv-big" style="font-size:18px" data-k="k5">—</div><div class="dv-sub" data-k="k5b"></div></div></div>
+        <div class="dv-ai">${anillo('k6', 14, 4)}<div><div class="dv-lbl">Árboles perdidos</div><div class="dv-big" style="font-size:18px" data-k="k6">—</div><div class="dv-sub" data-k="k6b"></div></div></div>
       </div></div></section>
   </div>
-  <div id="dv-ficha" class="dv-glass"><h5>Indicadores de control</h5><dl data-k="ficha"></dl></div>
   <div id="dv-leyenda" class="dv-glass" data-k="leyenda"></div>
-  <div id="dv-pills"><button data-p="byn" title="La ciudad en blanco y negro; solo la propuesta en color">${ICO.gris}Blanco y negro</button><button data-p="var">${ICO.ajustes}Variables</button><button data-p="inf">${ICO.informe}Informe</button></div>
-  <div id="dv-llave" class="dv-glass">Pantalla dividida<u></u></div>`;
+  <div id="dv-pills"><button data-p="byn" title="La ciudad en blanco y negro; solo la propuesta en color">${ICO.gris}Blanco y negro</button><button data-p="inf">${ICO.informe}Informe</button></div>
+  `;
   document.body.appendChild(raiz);
-  const $ = (k) => raiz.querySelector(`[data-k="${k}"]`);
+  const NADA = document.createElement('div'), $ = (k) => raiz.querySelector(`[data-k="${k}"]`) || NADA; // (lo que ya no está en el tablero no rompe)
 
   /* ---------------- controles ---------------- */
   const html = document.documentElement;
   raiz.querySelectorAll('[data-vista]').forEach(b => b.onclick = () => { if (b.dataset.vista === 'una') salir(); else activar(); });
-  raiz.querySelector('#dv-llave').onclick = () => { if (D.on) salir(); else activar(); };
   raiz.querySelectorAll('[data-par]').forEach(b => b.onclick = () => { const S = ESC.sim, con = S ? S.id % 2 === 0 : false; elegir(2 * +b.dataset.par - (con ? 0 : 1)); });
   raiz.querySelectorAll('[data-prop]').forEach(b => b.onclick = () => { const S = ESC.sim; if (!S) return; elegir(2 * S.par - (b.dataset.prop === '1' ? 0 : 1)); });
-  const variables = () => { html.classList.toggle('dv-var'); raiz.querySelector('[data-p="var"]').classList.toggle('on', html.classList.contains('dv-var')); };
-  $('var').onclick = variables; raiz.querySelector('[data-p="var"]').onclick = variables;
+  const variables = () => { html.classList.toggle('dv-var'); $('var').classList.toggle('on', html.classList.contains('dv-var')); };
+  $('var').onclick = variables;
   raiz.querySelector('[data-p="byn"]').onclick = () => D.ponerByN(!D.byn);
   raiz.querySelector('[data-p="inf"]').onclick = () => { const U = window.KEN_SIMUI; if (U && U.abrirInforme) U.abrirInforme(); };
+  addEventListener('keydown', (e) => { // atajos: 1–6 par, S / C sin o con propuesta, B blanco y negro, D vista 3D ↔ dividida
+    if (!D.on || e.ctrlKey || e.metaKey || e.altKey || /INPUT|TEXTAREA|SELECT/.test(document.activeElement && document.activeElement.tagName)) return;
+    const S = ESC.sim, k = e.key.toLowerCase();
+    if (/^[1-6]$/.test(k)) { elegir(2 * +k - (S && S.id % 2 === 0 ? 0 : 1)); e.preventDefault(); }
+    else if ((k === 's' || k === 'c') && S) { elegir(2 * S.par - (k === 'c' ? 0 : 1)); e.preventDefault(); }
+    else if (k === 'b') { D.ponerByN(!D.byn); e.preventDefault(); }
+    else if (k === 'd') { salir(); e.preventDefault(); }
+  });
   function elegir(id) { // misma acción que los botones de la vista limpia (#lp-sims), y sigue corriendo
     const b = document.querySelector(`#lp-sims button[data-s="${id}"]`); if (!b) return;
     const corria = !RELOJ.pausaSem; b.click();
@@ -240,7 +305,7 @@ export function iniciarDividida({ T3, ESC }) {
     const W = innerWidth, H = innerHeight, vert = W < 900;
     if (vert) return { vert, a: { x: 0, y: 0, w: W, h: Math.floor(H / 2), vx0: 0, vx1: W, vy0: 62, vy1: Math.floor(H / 2) }, b: { x: 0, y: Math.floor(H / 2), w: W, h: H - Math.floor(H / 2), vx0: 0, vx1: W, vy0: 0, vy1: H - Math.floor(H / 2) - 80 } };
     const col = W < 1180 ? 252 : 308, m = Math.floor(W / 2);
-    return { vert, a: { x: 0, y: 0, w: m, h: H, vx0: col, vx1: m, vy0: 110, vy1: H - 70 }, b: { x: m, y: 0, w: W - m, h: H, vx0: 0, vx1: W - m - col, vy0: 110, vy1: H - 70 } };
+    return { vert, a: { x: 0, y: 0, w: m, h: H, vx0: col, vx1: m, vy0: 118, vy1: H - 70 }, b: { x: m, y: 0, w: W - m, h: H, vx0: 0, vx1: W - m - col, vy0: 118, vy1: H - 70 } };
   };
   function encuadrar(cam, r, medio) { // frustum ortográfico con el punto mirado en el centro de la parte visible
     const asp = r.w / r.h, h = medio, w = h * asp;
@@ -441,6 +506,7 @@ export function iniciarDividida({ T3, ESC }) {
 
   /* ---------------- tablero: actualizar ---------------- */
   const ponerAnillo = (id, t, txt, ambar) => { const a = raiz.querySelector(`[data-a="${id}"]`); if (!a) return; const c = a.querySelectorAll('circle')[1], C = +c.dataset.c;
+    a.classList.toggle('vacio', txt === '');
     c.setAttribute('stroke-dasharray', `${(cl01(t) * C).toFixed(1)} ${C}`); c.setAttribute('stroke', ambar === 'V' ? 'url(#dvGradV)' : ambar === 'N' ? 'url(#dvGradN)' : ambar ? 'url(#dvGradA)' : 'url(#dvGrad)'); a.querySelector('span').textContent = txt; };
   const BARRAS = [['fauna', 'Fauna'], ['flora', 'Flora'], ['poliniz', 'Polinizadores'], ['red', 'Interacciones'], ['pares', 'Territorio con fauna'], ['aves', 'Aves']];
   function grafica(H, P, par) {
@@ -468,7 +534,7 @@ export function iniciarDividida({ T3, ESC }) {
     raiz.querySelectorAll('[data-par]').forEach(b => b.classList.toggle('on', +b.dataset.par === par));
     raiz.querySelectorAll('[data-prop]').forEach(b => b.classList.toggle('on', S && (+b.dataset.prop === (S.id % 2 === 0 ? 1 : 0))));
     if (U.M) pareja(U);
-    if (!I) { $('ficha').innerHTML = `<dt>Simulación:</dt><dd>${S ? S.id + ' · ' + S.n : '—'}</dd><dt>Estado:</dt><dd>en el año 1 · dale play</dd>`; return; }
+    if (!I) return;
     $('cong').textContent = Math.round(I.congestion) + '%';
     // izquierda
     ponerAnillo('comida', I.comidaLocal || 0, pct(I.comidaLocal));
@@ -486,14 +552,18 @@ export function iniciarDividida({ T3, ESC }) {
     $('gtit').textContent = CLAVE[par] ? `${CLAVE[par].n} (${CLAVE[par].u})` : '';
     if (sem !== ultSem || Date.now() - ultTab > 1500) { $('graf').innerHTML = grafica(H, PAREJA.H, par); ultTab = Date.now(); }
     const P = PAREJA.H[Math.min(PAREJA.H.length, H.length) - 1], esCon = !!I.propuesta, otroN = esCon ? 'sin' : 'con';
-    const K6 = [['k1', (x) => x.congestion / 100, (x) => Math.round(x.congestion) + '%'], ['k2', (x) => x.comidaMin, (x) => pct(x.comidaMin)], ['k3', (x) => (x.humedalFuncional || 0) / 100, (x) => Math.round(x.humedalFuncional || 0) + '%'],
-      ['k4', (x) => x.circular ? x.circular.indice : 0, (x) => pct(x.circular ? x.circular.indice : 0)], ['k5', (x) => x.basura ? x.basura.fraccionSinRecoger || 0 : 0, (x) => pct(x.basura ? x.basura.fraccionSinRecoger || 0 : 0)], ['k6', (x) => x.arbolesPerdidos || 0, (x) => pct(x.arbolesPerdidos || 0)]];
-    for (const [k, fv, ft] of K6) { const t = fv(I); ponerAnillo(k, t, pct(t), esCon ? 'V' : 'N'); $(k).textContent = ft(I); $(k + 'b').textContent = P ? `${otroN}: ${ft(P)}` : '…'; }
-    // ficha de control
-    const a = Math.min(20, Math.floor(sem / 52) + 1), fa = FASES.find(x => a >= x.a0 && a <= x.a1) || FASES[0], ev = (R.eventos || []).slice(-1)[0];
+    // [clave, valor 0–1, ¿mejor si sube?]: el cambio frente a la otra mitad del par va con flecha y color (verde mejor, coral peor)
+    const K6 = [['k1', (x) => x.congestion / 100, false], ['k2', (x) => x.comidaMin || 0, true], ['k3', (x) => (x.humedalFuncional || 0) / 100, true],
+      ['k4', (x) => x.circular ? x.circular.indice : 0, true], ['k5', (x) => x.basura ? x.basura.fraccionSinRecoger || 0 : 0, false], ['k6', (x) => x.arbolesPerdidos || 0, false]];
+    $('cmpT').textContent = esCon ? 'Con propuesta vs. sin' : 'Sin propuesta vs. con';
+    for (const [k, fv, sube] of K6) { const t = fv(I); ponerAnillo(k, t, '', esCon ? 'V' : 'N'); $(k).textContent = pct(t);
+      if (!P) { $(k + 'b').innerHTML = '<span class="dv-d">calculando…</span>'; continue; }
+      const d = Math.round((t - fv(P)) * 100), cl = d === 0 ? '' : ((d > 0) === sube ? 'bien' : 'mal');
+      $(k + 'b').innerHTML = d === 0 ? '<span class="dv-d">igual</span>' : `<span class="dv-d ${cl}">${d > 0 ? ICO.sube : ICO.baja}${Math.abs(d)} pts</span>`; }
     const Ii = (U.M && U.M.SIMS || []).find(x => x.id === R.sim) || {};
-    $('ficha').innerHTML = `<dt>Simulación:</dt><dd>${R.sim} · ${S ? S.n : ''}</dd><dt>Prueba:</dt><dd>${Ii.prueba || '—'}</dd><dt>Semana:</dt><dd>${Math.floor(sem)} de ${FIN}</dd><dt>Año:</dt><dd>${a} · ${fa.n}</dd>
-      <dt>Capa:</dt><dd>${temaAct ? temaAct.t : '—'}</dd><dt>Estado:</dt><dd>${R.go ? '<b style="color:#ff6b5b">GAME OVER · ' + (R.go.motivo || R.go.regla || '') + '</b>' : ev ? 'Año ' + (Math.floor((ev.sem || 0) / 52) + 1) + ': ' + ev.titulo : 'sin game over'}</dd>`;
+    $('pnom').textContent = S ? `${String(S.par).padStart(2, '0')} · ${PAR_N[S.par]} · ${S.id % 2 === 0 ? 'con' : 'sin'} propuesta` : '—';
+    $('prueba').textContent = R.go ? 'Game over: ' + (R.go.motivo || R.go.regla || '') : (Ii.prueba || '');
+    raiz.querySelector('#dv-prueba').classList.toggle('go', !!R.go);
     // capa temática (cada 2 semanas o al cambiar de par)
     if (Math.abs(I.sem - ultCapa) >= 2 || I.sem < ultCapa || D._par !== par) { ultCapa = I.sem; D._par = par; pintarCapa(I, par); leyenda(); }
     ultSem = sem;
@@ -508,15 +578,13 @@ export function iniciarDividida({ T3, ESC }) {
   function colocar() { // ficha, leyenda, norte, escala y textos de cada mitad según el tamaño de la ventana
     const K = caja(), W = innerWidth, H = innerHeight;
     const v1 = raiz.querySelector('#dv-v1'), v2 = raiz.querySelector('#dv-v2');
-    v1.style.left = (K.a.x + K.a.vx0 + 14) + 'px'; v2.style.left = (K.b.x + 18) + 'px'; v1.style.top = v2.style.top = (K.vert ? 70 : 116) + 'px';
+    v1.style.left = (K.a.x + K.a.vx0 + 14) + 'px'; v2.style.left = (K.b.x + 18) + 'px'; v1.style.top = v2.style.top = (K.vert ? 70 : 122) + 'px';
     if (K.vert) v2.style.top = (K.b.y + 10) + 'px';
-    const n = raiz.querySelector('#dv-norte'); n.style.left = (K.b.x + K.b.vx1 - 54) + 'px'; n.style.top = (K.vert ? K.b.y + 10 : 114) + 'px';
-    const fi = raiz.querySelector('#dv-ficha'); fi.style.left = (K.b.x + 18) + 'px'; fi.style.top = (H - 300) + 'px';
-    const le = raiz.querySelector('#dv-leyenda'); le.style.left = (K.b.x + K.b.vx1 - 166) + 'px'; le.style.bottom = '78px'; le.style.top = 'auto';
+    const n = raiz.querySelector('#dv-norte'); n.style.left = (K.b.x + K.b.vx1 - 54) + 'px'; n.style.top = (K.vert ? K.b.y + 10 : 120) + 'px';
+    const le = raiz.querySelector('#dv-leyenda'); le.style.left = (K.b.x + K.b.vx1 - 196) + 'px'; le.style.bottom = '16px'; le.style.top = 'auto';
     const pi = raiz.querySelector('#dv-pills'); pi.style.left = (K.a.vx0 + 14) + 'px';
-    const ll = raiz.querySelector('#dv-llave'); ll.style.left = (K.b.x + K.b.vx1 - 180) + 'px';
     const es = raiz.querySelector('#dv-escala'); if (D.escalaPlanta) { const m = [100, 200, 250, 500, 1000, 2000].find(x => x / D.escalaPlanta > 70) || 2000; es.firstChild.textContent = m >= 1000 ? m / 1000 + ' km' : m + ' m';
-      es.querySelector('i').style.width = (m / D.escalaPlanta).toFixed(0) + 'px'; } es.style.left = (K.b.x + K.b.vx1 - 54 - 130) + 'px'; es.style.top = (K.vert ? K.b.y + 24 : 128) + 'px';
+      es.querySelector('i').style.width = (m / D.escalaPlanta).toFixed(0) + 'px'; } es.style.left = (K.b.x + K.b.vx1 - 54 - 130) + 'px'; es.style.top = (K.vert ? K.b.y + 24 : 134) + 'px';
   }
   addEventListener('resize', colocar);
 
@@ -524,14 +592,14 @@ export function iniciarDividida({ T3, ESC }) {
   function activar() {
     const U = window.KEN_SIMUI; if (U && U.M && !celdas) armar(U.M);
     D.on = true; D.salio = false; html.classList.add('dv-on'); grupo.visible = true;
-    raiz.querySelectorAll('[data-vista]').forEach(b => b.classList.toggle('on', b.dataset.vista === 'div')); raiz.querySelector('#dv-llave').classList.remove('off');
+    raiz.querySelectorAll('[data-vista]').forEach(b => b.classList.toggle('on', b.dataset.vista === 'div')); 
     ultCapa = -99; colocar(); actualizar();
     // si la vista limpia ya puso el territorio en blanco y negro (data3d/foco.js), las dos vistas arrancan igual: gris y solo la propuesta en color
     if (window.KEN_FOCO && window.KEN_FOCO.activo) D.ponerByN(true);
   }
   function salir() {
     D.on = false; D.salio = true; html.classList.remove('dv-on', 'dv-var'); grupo.visible = false;
-    raiz.querySelectorAll('[data-vista]').forEach(b => b.classList.toggle('on', b.dataset.vista === 'una')); raiz.querySelector('#dv-llave').classList.add('off');
+    raiz.querySelectorAll('[data-vista]').forEach(b => b.classList.toggle('on', b.dataset.vista === 'una')); 
     const R = T3.renderer; R.setScissorTest(false); R.setViewport(0, 0, innerWidth, innerHeight);
   }
   D.activar = activar; D.salir = salir;
