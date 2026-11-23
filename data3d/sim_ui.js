@@ -611,5 +611,5 @@ export async function iniciarSimUI({ T3, SIMS_UI }) {
     return `<svg viewBox="0 0 ${W} ${Hh}" preserveAspectRatio="none">${ejes}${vb ? `<polyline points="${linea(vb)}" fill="none" stroke="rgba(255,255,255,.45)" stroke-dasharray="4 3" stroke-width="1.4" vector-effect="non-scaling-stroke"/>` : ''}<polyline points="${linea(v)}" fill="none" stroke="#ffcf7a" stroke-width="2" vector-effect="non-scaling-stroke"/></svg>`;
   }
 
-  return { preparar, reiniciarModelo, abrirInforme, avisar, get disponible() { return !!M; } };
+  return { preparar, reiniciarModelo, abrirInforme, avisar, get disponible() { return !!M; }, get R() { return R; }, get M() { return M; } }; // R y M: para el tablero de la pantalla dividida
 }
