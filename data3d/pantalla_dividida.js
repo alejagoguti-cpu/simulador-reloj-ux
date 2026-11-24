@@ -12,6 +12,7 @@
 import { RELOJ } from './reloj.js?v=5';
 
 const FIN = 1040, AÑO0 = 2026;
+const SIN_PLANTA = true; // false: vuelve la pantalla dividida (vista 3D + planta)
 const FASES = [{ n: 'Corto plazo', a0: 1, a1: 5 }, { n: 'Mediano plazo', a0: 6, a1: 10 }, { n: 'Largo plazo', a0: 11, a1: 20 }];
 const PAR_CORTO = ['', 'Abastecimiento', 'Movilidad', 'Residuos', 'Biodiversidad', 'Población', 'Gobernanza'];
 const PAR_N = ['', 'Abastecimiento', 'Movilidad', 'Residuos', 'Biodiversidad', 'Población y suelo', 'Gobernanza'];
@@ -135,6 +136,8 @@ export function iniciarDividida({ T3, ESC }) {
   html.dv-on #lp-anos .tit{display:none}
   @media (max-width:1180px){.dv-col{width:244px}.dv-bar{grid-template-columns:66px 1fr 40px}#dv-top .clima{display:none}#dv-chips button{padding:0 7px;font-size:11.5px}html.dv-on #lp-anos{width:calc(100vw - 580px);min-width:300px}}
   @media (max-width:900px){.dv-col,#dv-chips,#dv-top .tabs,#dv-ficha,#dv-leyenda{display:none!important}#dv-raya{top:50%;left:0;right:0;bottom:auto;width:auto;height:1px}html.dv-on #lp-anos{width:calc(100vw - 24px);min-width:0}}
+  /* ===== sin planta: fuera la raya, los rótulos de cada mitad, norte, escala, leyenda de la planta y el selector 3D/dividida ===== */
+  #dv-raya,.dv-vista,#dv-norte,#dv-escala,#dv-leyenda,#dv-top .vista{display:none!important}
   /* ===== rediseño UX ===== */
   #dv-top{gap:12px;padding:0 8px 0 16px;height:50px}
   #dv-top .marca{display:flex;flex-direction:column;line-height:1.2;margin-right:auto;min-width:0}
@@ -283,13 +286,12 @@ export function iniciarDividida({ T3, ESC }) {
   $('var').onclick = variables;
   raiz.querySelector('[data-p="byn"]').onclick = () => D.ponerByN(!D.byn);
   raiz.querySelector('[data-p="inf"]').onclick = () => { const U = window.KEN_SIMUI; if (U && U.abrirInforme) U.abrirInforme(); };
-  addEventListener('keydown', (e) => { // atajos: 1–6 par, S / C sin o con propuesta, B blanco y negro, D vista 3D ↔ dividida
+  addEventListener('keydown', (e) => { // atajos: 1–6 par, S / C sin o con propuesta, B blanco y negro
     if (!D.on || e.ctrlKey || e.metaKey || e.altKey || /INPUT|TEXTAREA|SELECT/.test(document.activeElement && document.activeElement.tagName)) return;
     const S = ESC.sim, k = e.key.toLowerCase();
     if (/^[1-6]$/.test(k)) { elegir(2 * +k - (S && S.id % 2 === 0 ? 0 : 1)); e.preventDefault(); }
     else if ((k === 's' || k === 'c') && S) { elegir(2 * S.par - (k === 'c' ? 0 : 1)); e.preventDefault(); }
     else if (k === 'b') { D.ponerByN(!D.byn); e.preventDefault(); }
-    else if (k === 'd') { salir(); e.preventDefault(); }
   });
   function elegir(id) { // misma acción que los botones de la vista limpia (#lp-sims), y sigue corriendo
     const b = document.querySelector(`#lp-sims button[data-s="${id}"]`); if (!b) return;
@@ -315,6 +317,12 @@ export function iniciarDividida({ T3, ESC }) {
   }
   D.render = function (cam) {
     if (!D.on || !T3.orbit) return false;
+    if (SIN_PLANTA) { // sin planta (2026-11-23, a pedido de la autora): la vista 3D de siempre con el tablero encima
+      if (!D.byn) return false; // dibujo normal de index.html (con oclusión ambiental)
+      const R = T3.renderer, W = innerWidth, H = innerHeight; R.setScissorTest(true);
+      try { dibByN(cam, { x: 0, y: 0, w: W, h: H }, 0); } finally { R.setScissorTest(false); R.setViewport(0, 0, W, H); }
+      return true;
+    }
     const R = T3.renderer, tg = T3.orbit.target, dist = cam.position.distanceTo(tg), fov = (cam.fov || 50) * Math.PI / 180;
     const medio = Math.max(600, dist * Math.tan(fov / 2) * D.zoom), K = caja(); // las vistas paralelas abarcan más que la perspectiva: Kennedy casi entera
     // planta: cenital, norte arriba (en el mundo z va al sur)
